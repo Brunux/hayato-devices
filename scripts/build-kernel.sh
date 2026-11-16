@@ -1,19 +1,20 @@
 #!/bin/bash
 # Build the kernel for the selected device's kernel flavor and stage it.
 #
-# Source: mainline tarball from cdn.kernel.org + kernels/<flavor>/patches
-# (applied in the order listed in kernels/<flavor>/patches/series).
+# Supports two config layouts under kernels/<flavor>/:
+#   1. Monolithic `config.<arch>` (e.g. mediatek-mt81/config.aarch64)
+#   2. Composable `base.config` + `fragments/*.config` + optional board `kernel.config`
+#      (e.g. arm64-mainline), merged on top of arch defconfig via merge_config.sh
+#
+# Optional: BUILD_DEB=yes builds Debian packages into $BUILD_ROOT/kernel-deb/$DEVICE.
 set -euo pipefail
-. "$(dirname "$0")/lib.sh"
+. "$(dirname "$0")/lib-devices.sh"
 
 STAGE="$KERNEL_STAGE"
 JOBS="${JOBS:-$(nproc)}"
 SERIES="$KERNEL_PATCH_DIR/series"
+BUILD_DEB="${BUILD_DEB:-no}"
 
-# What the extracted tree was built from: the patch list and every patch file.
-# The marker holds this hash, so editing a patch re-extracts instead of silently
-# building the previous ones (the config is not part of it - that is synced on
-# every run, below).
 patches_hash() {
 	{
 		cat "$SERIES" 2>/dev/null
@@ -29,8 +30,6 @@ fetch_and_prepare() {
 	fi
 	_want="$(patches_hash)"
 	if [ -f "$KERNEL_SRC/.prepared" ] && [ "$(cat "$KERNEL_SRC/.prepared")" = "$_want" ]; then
-		# Already extracted and patched; the config is still synced (below),
-		# because kbuild only picks it up from .config.
 		log "Kernel source already prepared (same patches)"
 	else
 		log "Extracting $KERNEL_TARBALL"
@@ -47,38 +46,61 @@ fetch_and_prepare() {
 		fi
 		printf '%s\n' "$_want" >"$KERNEL_SRC/.prepared"
 	fi
-	# Always: kernels/<flavor>/config.aarch64 is the source of truth, and a
-	# build that silently ignored an edited config is the same class of bug as a
-	# working tree that never reached the image.
-	if ! cmp -s "$KERNEL_CONFIG" "$KERNEL_SRC/.config"; then
-		log "Syncing kernel config (kernels/$KERNEL_FLAVOR/config.aarch64)"
+
+	if [ "$KERNEL_CONFIG_MODE" = "monolithic" ]; then
+		if ! cmp -s "$KERNEL_CONFIG" "$KERNEL_SRC/.config"; then
+			log "Syncing kernel config (kernels/$KERNEL_FLAVOR/config.$ARCH)"
+		fi
+		cp "$KERNEL_CONFIG" "$KERNEL_SRC/.config"
+	else
+		log "Merging composable config ($KERNEL_FLAVOR: base${KERNEL_FRAGMENT_LIST:+ + $KERNEL_FRAGMENT_LIST})"
+		make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 defconfig </dev/null >/dev/null
+		"$KERNEL_SRC/scripts/kconfig/merge_config.sh" -m -O "$KERNEL_SRC" \
+			"$KERNEL_SRC/.config" "${KERNEL_FRAGMENTS[@]}"
 	fi
-	cp "$KERNEL_CONFIG" "$KERNEL_SRC/.config"
+}
+
+check_config_drift() {
+	# Exclude compiler-probe symbols that embed toolchain versions on every run.
+	local drift="" line
+	local ref_files=("$KERNEL_CONFIG")
+	[ "$KERNEL_CONFIG_MODE" = "monolithic" ] || ref_files=("${KERNEL_FRAGMENTS[@]}")
+
+	while IFS= read -r line; do
+		case "$line" in
+			CONFIG_CC_*|CONFIG_AS_*|CONFIG_LD_*|CONFIG_LLD_*|CONFIG_BINDGEN_*|CONFIG_RUSTC_*|CONFIG_CLANG_*|CONFIG_PAHOLE_*) continue ;;
+		esac
+		if [ "$KERNEL_CONFIG_MODE" = "monolithic" ]; then
+			grep -qxF "$line" "$KERNEL_CONFIG" || drift="$drift ${line%%=*}"
+		fi
+	done <"$KERNEL_SRC/.config"
+
+	if [ "$KERNEL_CONFIG_MODE" = "fragments" ]; then
+		for frag in "${ref_files[@]}"; do
+			while IFS= read -r line; do
+				case "$line" in
+					''|'#'*) continue ;;
+				esac
+				grep -qxF "$line" "$KERNEL_SRC/.config" || drift="$drift ${line%%=*}"
+			done <"$frag"
+		done
+	fi
+
+	[ -z "$drift" ] || warn "config drift (built .config differs from declared config):$drift"
 }
 
 build_kernel() {
 	log "Building kernel $KERNEL_RELEASE ($JOBS jobs)"
-	# olddefconfig first, non-interactively. kbuild runs it on its own when the
-	# tree grew a symbol, but then it asks its question on the build's stdin and
-	# the answer is whatever the stream happens to contain: a config with a
-	# duplicated `# CONFIG_HZ_1000 is not set` once produced a full rebuild at
-	# HZ=100 instead of 1000, silently.
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 olddefconfig </dev/null >/dev/null
-	# The shipped file is the source of truth, so anything that ends up different
-	# is drift worth seeing (compiler-probe symbols embed tool versions and change
-	# on every build, hence the exclusions).  `CONFIG_LLD_VERSION` is one of those
-	# and needs its own pattern: it records the ld.lld version, so the shipped
-	# file can never carry it, and matching only CONFIG_LD_* left every build
-	# warning about a line that is not a choice.
-	_drift=""
-	while IFS= read -r _line; do
-		case "$_line" in
-			CONFIG_CC_*|CONFIG_AS_*|CONFIG_LD_*|CONFIG_LLD_*|CONFIG_BINDGEN_*|CONFIG_RUSTC_*|CONFIG_CLANG_*|CONFIG_PAHOLE_*) continue ;;
-		esac
-		grep -qxF "$_line" "$KERNEL_CONFIG" || _drift="$_drift ${_line%%=*}"
-	done <"$KERNEL_SRC/.config"
-	[ -z "$_drift" ] || warn "config drift (built value differs from $KERNEL_CONFIG):$_drift"
+	check_config_drift
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS"
+	if [ "$BUILD_DEB" = yes ]; then
+		DEB_OUT="$BUILD_ROOT/kernel-deb/$DEVICE"
+		mkdir -p "$DEB_OUT"
+		log "Building Debian kernel packages into $DEB_OUT"
+		make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS" bindeb-pkg
+		mv -f "$SRC_DIR"/linux-*.deb "$DEB_OUT/" 2>/dev/null || true
+	fi
 }
 
 install_kernel() {
@@ -98,7 +120,7 @@ install_kernel() {
 }
 
 log "Device : $DEVICE"
-log "Kernel : $KERNEL_FLAVOR $KERNEL_VERSION ($KERNEL_ARCH)"
+log "Kernel : $KERNEL_FLAVOR $KERNEL_VERSION ($KERNEL_ARCH, $KERNEL_CONFIG_MODE)"
 
 fetch_and_prepare
 build_kernel

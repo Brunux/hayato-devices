@@ -1,0 +1,2 @@
+# Modules included unconditionally in initramfs (one per line).
+# Example: display bridge, panel, eMMC/NVMe or HID controllers needed before / mounts.

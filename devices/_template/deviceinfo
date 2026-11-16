@@ -1,0 +1,26 @@
+# LazyOS Board Metadata Template (copy this directory to devices/<codename>/)
+
+# Must match directory name devices/<codename>/
+deviceinfo_codename="example-board"
+deviceinfo_name="Example ARM64 Device"
+deviceinfo_manufacturer="Example Vendor"
+
+# Architecture: aarch64 | x86_64
+deviceinfo_arch="aarch64"
+
+# Boot backend in lazyos-core: depthcharge | uefi | extlinux
+deviceinfo_boot_type="extlinux"
+
+# Device tree glob relative to /boot/dtbs/ (leave empty on ACPI-only UEFI targets)
+deviceinfo_dtb="vendor/example-board*.dtb"
+
+# For uefi / extlinux targets (size in MiB, defaults set in core/boot/<backend>.sh)
+# deviceinfo_boot_size_mib="512"
+
+# For depthcharge targets only:
+# deviceinfo_cgpt_kpart_start="8192"
+# deviceinfo_cgpt_kpart_size="262144"
+# deviceinfo_depthcharge_arch="arm64"
+# deviceinfo_depthcharge_board="board-codename"
+# deviceinfo_depthcharge_compression="lzma"
+# deviceinfo_cgpt_kpart="true"

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Balance storage IRQs away from CPU0 (ChromeOS EC input core) on MT8192.
+for irq in $(awk '$NF == "11f70000.mmc" {print $1; exit}' /proc/interrupts 2>/dev/null | tr -d ':'); do
+	[ -w "/proc/irq/$irq/smp_affinity_list" ] && echo 2 > "/proc/irq/$irq/smp_affinity_list" 2>/dev/null || true
+done
+for irq in $(awk '$NF == "11f60000.mmc" {print $1; exit}' /proc/interrupts 2>/dev/null | tr -d ':'); do
+	[ -w "/proc/irq/$irq/smp_affinity_list" ] && echo 3 > "/proc/irq/$irq/smp_affinity_list" 2>/dev/null || true
+done

@@ -1,0 +1,3 @@
+# Space- or newline-separated Kconfig fragments under kernels/arm64-mainline/fragments/
+# (omit .config suffix). Example:
+# rockchip-rk3588

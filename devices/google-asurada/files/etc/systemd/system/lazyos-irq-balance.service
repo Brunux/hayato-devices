@@ -1,0 +1,11 @@
+[Unit]
+Description=Balance storage IRQs away from CPU0 on MT8192
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/lazyos-irq-balance
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

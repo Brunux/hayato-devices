@@ -1,0 +1,2 @@
+# Place static board files (udev rules, systemd units, keymaps, ALSA UCM overrides)
+# under devices/<codename>/files/ mirroring target rootfs paths (/etc/..., /usr/local/...).

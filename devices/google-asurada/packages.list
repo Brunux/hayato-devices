@@ -6,6 +6,12 @@ firmware-realtek
 firmware-mediatek
 firmware-misc-nonfree
 
+# MT8192 ANX7625 Type-C DisplayPort crosspoint mux (lazyos-dp-mux udev helper)
+i2c-tools
+
+# MT8192 Hayato ChromeOS top-row action/F-key remapper (etc/keyd/default.conf)
+keyd
+
 # ChromeOS boot chain. These are needed *on the device*, because the card that
 # boots from microSD is also the system that installs to and updates the eMMC:
 #   cgpt                 writes the ChromeOS GPT (scripts/lib-cgpt.sh)
