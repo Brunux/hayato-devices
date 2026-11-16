@@ -1,0 +1,14 @@
+# Debian packaged mainline ARM64 kernel + U-Boot tooling
+linux-image-arm64
+u-boot-tools
+
+# Broad multi-vendor hardware firmware for ARM64 SBCs and U-Boot systems
+firmware-linux-free
+firmware-linux-nonfree
+firmware-atheros
+firmware-brcm80211
+firmware-iwlwifi
+firmware-mediatek
+firmware-qcom-soc
+firmware-realtek
+firmware-misc-nonfree

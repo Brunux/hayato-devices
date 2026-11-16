@@ -1,0 +1,16 @@
+# Debian packaged mainline ARM64 kernel + UEFI systemd-boot tooling
+linux-image-arm64
+systemd-boot
+systemd-boot-efi
+efibootmgr
+
+# Broad multi-vendor hardware firmware for laptops, desktops, SBCs, and VMs
+firmware-linux-free
+firmware-linux-nonfree
+firmware-atheros
+firmware-brcm80211
+firmware-iwlwifi
+firmware-mediatek
+firmware-qcom-soc
+firmware-realtek
+firmware-misc-nonfree

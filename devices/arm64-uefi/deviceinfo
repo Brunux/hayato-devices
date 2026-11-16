@@ -1,0 +1,14 @@
+# ARM64 Generic UEFI Target (ACPI + EBBR Device-Tree)
+# Use double quotes only; parsed directly by lazyos-core scripts and the pure-Rust installer.
+
+deviceinfo_format_version="0"
+deviceinfo_name="ARM64 Generic UEFI"
+deviceinfo_manufacturer="Generic"
+deviceinfo_codename="arm64-uefi"
+deviceinfo_arch="aarch64"
+
+deviceinfo_boot_type="uefi"
+deviceinfo_boot_size_mib="256"
+deviceinfo_boot_filesystem="vfat"
+deviceinfo_image_size_mib="8192"
+deviceinfo_dtb=""

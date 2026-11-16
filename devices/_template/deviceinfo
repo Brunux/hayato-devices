@@ -16,6 +16,11 @@ deviceinfo_dtb="vendor/example-board*.dtb"
 
 # For uefi / extlinux targets (size in MiB, defaults set in core/boot/<backend>.sh)
 # deviceinfo_boot_size_mib="512"
+# deviceinfo_boot_filesystem="ext2"
+# deviceinfo_extlinux_start_mib="16"
+# deviceinfo_image_size_mib="8192"
+# Optional fixed internal disk hint for installer when hardware reports RM=0 for card readers
+# deviceinfo_install_target="/dev/mmcblk0"
 
 # For depthcharge targets only:
 # deviceinfo_cgpt_kpart_start="8192"

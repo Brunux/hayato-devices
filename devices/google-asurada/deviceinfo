@@ -33,3 +33,9 @@ deviceinfo_depthcharge_compression="lzma"
 deviceinfo_generate_depthcharge_image="true"
 
 deviceinfo_boot_type="depthcharge"
+deviceinfo_boot_size_mib="512"
+deviceinfo_boot_filesystem="ext2"
+deviceinfo_image_size_mib="6144"
+# Hayato reports RM=0 for both internal eMMC (mmcblk0) and external SD (mmcblk1),
+# so the installer defaults to mmcblk0 unless booted from it.
+deviceinfo_install_target="/dev/mmcblk0"

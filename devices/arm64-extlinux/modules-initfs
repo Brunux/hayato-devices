@@ -1,0 +1,9 @@
+nvme
+mmc_block
+virtio_blk
+usb_storage
+uas
+xhci_pci
+hid_generic
+usbhid
+simpledrm

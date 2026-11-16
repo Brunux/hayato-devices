@@ -1,0 +1,10 @@
+nvme
+virtio_blk
+usb_storage
+uas
+xhci_pci
+hid_generic
+usbhid
+i2c_hid_acpi
+i2c_hid_of
+simpledrm

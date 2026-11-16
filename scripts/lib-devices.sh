@@ -48,14 +48,32 @@ load_device_context() {
 
 	KERNEL_VERSION="$(tr -d ' \t\r\n' <"$KERNEL_DIR/version")"
 	KERNEL_PATCH_DIR="$KERNEL_DIR/patches"
+
+	KERNEL_FRAGMENT_LIST=""
+	KERNEL_FRAGMENTS=()
+
+	if [ -f "$KERNEL_DIR/package" ]; then
+		KERNEL_SOURCE_TYPE="debian-pkg"
+		KERNEL_PACKAGE="$(tr -d ' \t\r\n' <"$KERNEL_DIR/package")"
+		KERNEL_TARBALL=""
+		KERNEL_URL=""
+		KERNEL_SRC=""
+		KERNEL_CONFIG=""
+		KERNEL_BASE_CONFIG=""
+		KERNEL_CONFIG_MODE="debian-pkg"
+		KERNEL_LOCALVERSION=""
+		KERNEL_RELEASE="${KERNEL_RELEASE:-debian-pkg}"
+		return 0
+	fi
+
+	KERNEL_SOURCE_TYPE="source"
+	KERNEL_PACKAGE=""
 	KERNEL_TARBALL="linux-${KERNEL_VERSION}.tar.xz"
 	KERNEL_URL="https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_VERSION%%.*}.x/${KERNEL_TARBALL}"
 	KERNEL_SRC="${SRC_DIR}/linux-${KERNEL_VERSION}"
 
 	KERNEL_CONFIG="$KERNEL_DIR/config.$ARCH"
 	KERNEL_BASE_CONFIG="$KERNEL_DIR/base.config"
-	KERNEL_FRAGMENT_LIST=""
-	KERNEL_FRAGMENTS=()
 
 	local cfg_for_ver=""
 	if [ -f "$KERNEL_CONFIG" ]; then

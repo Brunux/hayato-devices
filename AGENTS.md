@@ -6,7 +6,8 @@ Kept independent of OS userland assembly (`lazyos-core`) and desktop UI (`lazyos
 LLM or contributor can add or update a board inside a small, self-contained repository.
 
 ## Kernel Families (`kernels/`)
-- **`arm64-mainline`**: Preferred target for **all new ARM64 boards**.
+- **`debian-arm64`**: Uses Debian `forky`'s stock `linux-image-arm64` package (`kernels/debian-arm64/package` -> `KERNEL_SOURCE_TYPE="debian-pkg"`). Used by generic `arm64-uefi` and `arm64-extlinux` targets: skips kernel compilation (`build-kernel.sh` exits `0`), resolves `KERNEL_RELEASE` from installed `/lib/modules/*`, syncs DTBs from `/usr/lib/linux-image-*` to `/boot/dtbs/`, and stays updated on live devices via `apt upgrade` + `/etc/kernel/postinst.d/zz-lazyos-boot`.
+- **`arm64-mainline`**: Preferred source-built target for custom mainline ARM64 boards needing bespoke config fragments or out-of-tree patches.
   - Never copy a 250 KB full `.config` per new board.
   - Put shared LazyOS OS requirements in `kernels/arm64-mainline/base.config` (`HZ_1000`, `PREEMPT`,
     `LRU_GEN_ENABLED`, `SCHEDUTIL`, `ZRAM`+`LZ4`/`ZSTD`, `KYBER`, `THP=madvise`, `systemd` cgroups/PSI).
@@ -15,7 +16,7 @@ LLM or contributor can add or update a board inside a small, self-contained repo
     board-specific toggles in `devices/<board>/kernel.config`.
   - `scripts/build-kernel.sh` merges `defconfig` + `base.config` + fragments via
     `scripts/kconfig/merge_config.sh`, then runs `olddefconfig` and checks for config drift.
-- **`mediatek-mt81`**: Legacy/custom config (`7.2.7` + 8 out-of-tree patches) for `google-asurada`.
+- **`mediatek-mt81`**: Custom source config (`7.2.7` + 8 out-of-tree patches + strict `HZ=1000` / `MGLRU` / `schedutil` assertions in `devices/google-asurada/check-device.sh`) preserved exclusively for `google-asurada`.
 
 ## How to Add a New Mainline Board (6 Steps)
 1. Copy `devices/_template/` to `devices/<codename>/` (match `deviceinfo_codename`).

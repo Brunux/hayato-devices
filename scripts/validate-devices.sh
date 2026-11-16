@@ -23,6 +23,14 @@ for kdir in "$KERNELS_DIR"/*; do
 	[ -d "$kdir" ] || continue
 	kname="$(basename "$kdir")"
 	[ -f "$kdir/version" ] || err "kernels/$kname: missing version file"
+	if [ -f "$kdir/package" ]; then
+		pkg_name="$(tr -d ' \t\r\n' <"$kdir/package")"
+		[ -n "$pkg_name" ] || err "kernels/$kname/package is empty"
+		pass "kernels/$kname: packaged Debian kernel ($pkg_name)"
+		continue
+	fi
+	[ -f "$kdir/base.config" ] || ls "$kdir"/config.* >/dev/null 2>&1 ||
+		err "kernels/$kname: needs package, base.config, or config.<arch>"
 	if [ -f "$kdir/patches/series" ]; then
 		while read -r p; do
 			case "$p" in '' | '#'*) continue ;; esac
@@ -53,7 +61,9 @@ for dev_dir in "$DEVICES_DIR"/*; do
 	fi
 
 	# Clear per-device variables before loading
-	unset deviceinfo_codename deviceinfo_arch deviceinfo_boot_type deviceinfo_dtb deviceinfo_kernel_fragments
+	unset deviceinfo_codename deviceinfo_arch deviceinfo_boot_type deviceinfo_dtb deviceinfo_kernel_fragments \
+		deviceinfo_boot_size_mib deviceinfo_boot_filesystem deviceinfo_extlinux_start_mib \
+		deviceinfo_image_size_mib deviceinfo_install_target
 	if ! (load_device_context "$dev" >/dev/null 2>&1); then
 		err "device $dev failed load_device_context"
 		continue

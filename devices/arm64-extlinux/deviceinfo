@@ -1,0 +1,15 @@
+# ARM64 Generic U-Boot / SBC extlinux Target
+# Use double quotes only; parsed directly by lazyos-core scripts and the pure-Rust installer.
+
+deviceinfo_format_version="0"
+deviceinfo_name="ARM64 Generic U-Boot / SBC"
+deviceinfo_manufacturer="Generic"
+deviceinfo_codename="arm64-extlinux"
+deviceinfo_arch="aarch64"
+
+deviceinfo_boot_type="extlinux"
+deviceinfo_boot_size_mib="512"
+deviceinfo_boot_filesystem="ext2"
+deviceinfo_extlinux_start_mib="16"
+deviceinfo_image_size_mib="8192"
+deviceinfo_dtb=""

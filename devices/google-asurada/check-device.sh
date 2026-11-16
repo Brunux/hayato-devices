@@ -204,3 +204,35 @@ if [ -n "$_mmc_irq" ] && [ -r "/proc/irq/$_mmc_irq/smp_affinity_list" ]; then
 		*) ok "microSD IRQ $_mmc_irq routed to CPU $_aff (CPU0 input handling protected)" ;;
 	esac
 fi
+
+# ---------------------------------------------------------------------------
+section "Device: google-asurada Kernel Optimizations"
+# ---------------------------------------------------------------------------
+_govs="$(cat /sys/devices/system/cpu/cpufreq/policy*/scaling_governor 2>/dev/null | sort -u | tr '\n' ' ')"
+case "$_govs" in
+	"schedutil ") ok "cpufreq governor is schedutil on every policy" ;;
+	"") skip "no cpufreq scaling_governor sysfs nodes" ;;
+	*) warn "cpufreq governor is '${_govs% }', not schedutil" ;;
+esac
+
+if [ -r /sys/kernel/mm/lru_gen/enabled ]; then
+	_lru="$(cat /sys/kernel/mm/lru_gen/enabled)"
+	case "$_lru" in
+		0x0000) fail "MGLRU is built in but disabled (lru_gen/enabled=$_lru)" ;;
+		*) ok "MGLRU enabled ($_lru)" ;;
+	esac
+else
+	fail "no /sys/kernel/mm/lru_gen: mediatek-mt81 was built without CONFIG_LRU_GEN"
+fi
+
+_kcfg="$(ls -1 /boot/config-* 2>/dev/null | head -1)"
+if [ -r "$_kcfg" ]; then
+	_missing_cfg=""
+	[ -n "$(grep -x 'CONFIG_HZ=1000' "$_kcfg" 2>/dev/null)" ] || _missing_cfg="$_missing_cfg HZ=1000"
+	[ -n "$(grep -x 'CONFIG_LRU_GEN=y' "$_kcfg" 2>/dev/null)" ] || _missing_cfg="$_missing_cfg LRU_GEN"
+	[ -n "$(grep -x 'CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL=y' "$_kcfg" 2>/dev/null)" ] || _missing_cfg="$_missing_cfg governor=schedutil"
+	[ -z "$_missing_cfg" ] && ok "Hayato kernel config carries tuning ($(basename "$_kcfg"))" ||
+		fail "Hayato kernel config lacks:$_missing_cfg"
+else
+	skip "no /boot/config-* to verify Hayato kernel options"
+fi

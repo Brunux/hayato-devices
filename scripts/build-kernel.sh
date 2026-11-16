@@ -15,6 +15,12 @@ JOBS="${JOBS:-$(nproc)}"
 SERIES="$KERNEL_PATCH_DIR/series"
 BUILD_DEB="${BUILD_DEB:-no}"
 
+if [ "${KERNEL_SOURCE_TYPE:-source}" = "debian-pkg" ]; then
+	log "Device : $DEVICE"
+	log "Kernel : $KERNEL_FLAVOR via Debian package '$KERNEL_PACKAGE' ($ARCH) — skipping source build"
+	exit 0
+fi
+
 patches_hash() {
 	{
 		cat "$SERIES" 2>/dev/null
