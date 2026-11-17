@@ -47,3 +47,11 @@ See [`PORTING-PMOS-NURA.md`](PORTING-PMOS-NURA.md) for the complete postmarketOS
 - All files under `devices/<board>/files/usr/local/{bin,sbin}` and `check-device.sh` must be `0755`.
 - Run `./scripts/validate-devices.sh` before committing; `.github/workflows/devices.yml` enforces it.
 - Keep commits and docs in English. Never embed hardcoded home paths inside `devices/<board>/files/`.
+
+## Tests (`tests/`)
+- `bash tests/run.sh` covers `scripts/lib-devices.sh` (monolithic, fragment and Debian-package kernel
+  context, architecture mapping, missing-piece errors) and the negative cases of
+  `scripts/validate-devices.sh` (Kconfig syntax, patch series, codename, boot type, permissions,
+  `_template`, shell syntax, overlay binaries). Trees are throwaway copies, so the checkout is safe.
+- `.github/workflows/devices.yml` and `./build.sh validate` run it; add a case when the loader or the
+  validator learns a new rule.

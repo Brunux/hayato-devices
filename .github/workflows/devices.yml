@@ -12,3 +12,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate device manifests, Kconfig fragments, patches and scripts
         run: ./scripts/validate-devices.sh
+      - name: Unit tests for lib-devices.sh and validate-devices.sh
+        run: bash tests/run.sh
