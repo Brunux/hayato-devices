@@ -13,6 +13,7 @@ Hardware definitions and Linux kernel recipes for [LazyOS](https://github.com/Br
 - `devices/google-kukui/` — Google Kukui / Krane / Kodama / Kakadu / Katsu / Jacuzzi Chromebooks (MediaTek MT8183, `depthcharge`).
 - `devices/arm64-uefi/` — ARM64 Generic UEFI target (`uefi` boot, `debian-arm64` `linux-image-arm64`).
 - `devices/arm64-extlinux/` — ARM64 Generic U-Boot / SBC target (`extlinux` boot, `debian-arm64` `linux-image-arm64`).
+- `PORTING-PMOS-NURA.md` — Porting playbook and verified postmarketOS / Nura Linux (`pmaports`, `pmbootstrap`, `depthcharge-tools`, Debian `forky` mapping) findings for adding new boards.
 - `scripts/build-kernel.sh` — Builds and stages a source kernel (`BUILD_DEB=yes` optional), or exits `0` when using a `debian-pkg` kernel.
 - `scripts/validate-devices.sh` — Schema, Kconfig fragment syntax, patch series, and shell check.
 

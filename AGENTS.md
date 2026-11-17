@@ -20,6 +20,8 @@ LLM or contributor can add or update a board inside a small, self-contained repo
   - Because Debian `firmware-atheros` packages `qca/nvm_00440302_i2s_eu.bin` without `qca/nvm_00440302_i2s.bin` and `alsa-ucm-conf` ships `conf.d/mt8183_da7219_r` without the 15-char truncated `conf.d/mt8183_da7219_m` entry (`mt8183_da7219_max98357`), `devices/google-kukui/files/` supplies both relative symlinks rather than pushing board quirks into `lazyos-core` or `lazyos-desktop`.
 
 ## How to Add a New Mainline Board (6 Steps)
+See [`PORTING-PMOS-NURA.md`](PORTING-PMOS-NURA.md) for the complete postmarketOS / Nura Linux porting checklist (`pmaports`, `depthcharge-tools` `boards.ini`, Debian `forky` firmware/UCM2 pitfalls, and `lazyos installer` compatibility).
+
 1. Copy `devices/_template/` to `devices/<codename>/` (match `deviceinfo_codename`).
 2. Fill `deviceinfo`:
    - `deviceinfo_arch="aarch64"` (or `x86_64`)
