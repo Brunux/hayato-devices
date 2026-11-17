@@ -1,0 +1,16 @@
+# Early-boot modules for MT8183 Kukui / Krane / Kodama / Kakadu / Katsu / Jacuzzi.
+# Display (drm_mediatek, panfrost, panel_boe_tv101wum_nl6, panel_edp, anx7625,
+# ps8640, it6505) and core ChromeOS keyboard/hammer drivers are built into mediatek-mt81.
+atmel_mxt_ts
+cros_ec_typec
+elan_i2c
+elants_i2c
+goodix_ts
+hid_generic
+hid_multitouch
+i2c_hid_of
+i2c_hid_of_elan
+i2c_hid_of_goodix
+mtk_scp
+panel_boe_th101mb31ig002_28a
+sbs_battery

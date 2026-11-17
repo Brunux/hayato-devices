@@ -1,0 +1,12 @@
+# Device-specific packages (Google Kukui family / MT8183, board google-kukui).
+# Kernel 7.2.7-mt81 + modules + DTBs are built from kernels/mediatek-mt81/ and
+# installed into rootfs alongside these firmware and Depthcharge boot tools.
+
+# QCA6174 Wi-Fi + Bluetooth (most Kukui/Jacuzzi/Krane) and MT8183 SCP / MT7921s (pico6)
+firmware-atheros
+firmware-mediatek
+
+# Signed ChromeOS FIT kernel partition (cgpt + futility + depthchargectl)
+cgpt
+vboot-kernel-utils
+depthcharge-tools

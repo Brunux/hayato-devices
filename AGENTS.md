@@ -16,7 +16,8 @@ LLM or contributor can add or update a board inside a small, self-contained repo
     board-specific toggles in `devices/<board>/kernel.config`.
   - `scripts/build-kernel.sh` merges `defconfig` + `base.config` + fragments via
     `scripts/kconfig/merge_config.sh`, then runs `olddefconfig` and checks for config drift.
-- **`mediatek-mt81`**: Custom source config (`7.2.7` + 8 out-of-tree patches + strict `HZ=1000` / `MGLRU` / `schedutil` assertions in `devices/google-asurada/check-device.sh`) preserved exclusively for `google-asurada`.
+- **`mediatek-mt81`**: Custom source config (`7.2.7` + 8 out-of-tree patches including `mt8183-fix-bluetooth.patch` + strict `HZ=1000` / `MGLRU` / `schedutil` assertions in `check-device.sh`) shared by `google-asurada` (MT8192) and `google-kukui` (MT8183) ChromeOS families.
+  - Because Debian `firmware-atheros` packages `qca/nvm_00440302_i2s_eu.bin` without `qca/nvm_00440302_i2s.bin` and `alsa-ucm-conf` ships `conf.d/mt8183_da7219_r` without the 15-char truncated `conf.d/mt8183_da7219_m` entry (`mt8183_da7219_max98357`), `devices/google-kukui/files/` supplies both relative symlinks rather than pushing board quirks into `lazyos-core` or `lazyos-desktop`.
 
 ## How to Add a New Mainline Board (6 Steps)
 1. Copy `devices/_template/` to `devices/<codename>/` (match `deviceinfo_codename`).

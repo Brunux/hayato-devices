@@ -1,0 +1,9 @@
+#!/bin/sh
+# Balance storage IRQs away from CPU0 (ChromeOS EC input core) on MT8183.
+# mmc0 (11230000.mmc) is internal eMMC; mmc1 (11240000.mmc) is the microSD slot.
+for irq in $(awk '$NF == "11230000.mmc" {print $1; exit}' /proc/interrupts 2>/dev/null | tr -d ':'); do
+	[ -w "/proc/irq/$irq/smp_affinity_list" ] && echo 2 > "/proc/irq/$irq/smp_affinity_list" 2>/dev/null || true
+done
+for irq in $(awk '$NF == "11240000.mmc" {print $1; exit}' /proc/interrupts 2>/dev/null | tr -d ':'); do
+	[ -w "/proc/irq/$irq/smp_affinity_list" ] && echo 3 > "/proc/irq/$irq/smp_affinity_list" 2>/dev/null || true
+done
