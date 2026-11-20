@@ -97,14 +97,24 @@ check_config_drift() {
 
 build_kernel() {
 	log "Building kernel $KERNEL_RELEASE ($JOBS jobs)"
+	# Host tools (resolve_btfids and friends) include <asm/sigcontext.h> from
+	# the installed kernel headers, and the header in current forky declares
+	# __u128 without including <linux/types.h> where it is defined. The kernel
+	# proper is unaffected; only the host-side tools fail to compile, so the
+	# fix is a forced include of the system header, and only where it is the
+	# one that carries the typedef.
+	host_compat=()
+	if grep -qs "__u128" /usr/include/linux/types.h; then
+		host_compat=(HOSTCFLAGS="-include /usr/include/linux/types.h")
+	fi
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 olddefconfig </dev/null >/dev/null
 	check_config_drift
-	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS"
+	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS" "${host_compat[@]}"
 	if [ "$BUILD_DEB" = yes ]; then
 		DEB_OUT="$BUILD_ROOT/kernel-deb/$DEVICE"
 		mkdir -p "$DEB_OUT"
 		log "Building Debian kernel packages into $DEB_OUT"
-		make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS" bindeb-pkg
+		make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS" "${host_compat[@]}" bindeb-pkg
 		mv -f "$SRC_DIR"/linux-*.deb "$DEB_OUT/" 2>/dev/null || true
 	fi
 }
