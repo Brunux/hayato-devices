@@ -9,5 +9,5 @@ and `apt upgrade` security updates.
 - `core/scripts/install-kernel.sh` resolves the installed kernel release dynamically from
   `$ROOTFS/lib/modules/*`, syncs DTBs from `/usr/lib/linux-image-$KERNEL_RELEASE/` to
   `/boot/dtbs/`, injects `modules-initfs`, and regenerates initramfs.
-- `/etc/kernel/postinst.d/zz-lazyos-boot` keeps `/boot/dtbs/` and `/boot/efi` or
+- `/etc/kernel/postinst.d/zz-hayato-boot` keeps `/boot/dtbs/` and `/boot/efi` or
   `/boot/extlinux/extlinux.conf` updated automatically whenever `apt upgrade` installs a new kernel.

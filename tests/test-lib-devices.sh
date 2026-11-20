@@ -24,7 +24,7 @@ make_monolithic() {
 	printf 'deviceinfo_codename="%s"\ndeviceinfo_arch="%s"\ndeviceinfo_boot_type="extlinux"\n' \
 		"$dev" "$arch" >"$DEVICES_DIR/$dev/deviceinfo"
 	printf '6.12.28\n' >"$KERNELS_DIR/arm64-mainline/version"
-	printf 'CONFIG_LOCALVERSION="-lazyos"\nCONFIG_PREEMPT=y\n' \
+	printf 'CONFIG_LOCALVERSION="-hayato"\nCONFIG_PREEMPT=y\n' \
 		>"$KERNELS_DIR/arm64-mainline/config.aarch64"
 }
 
@@ -41,7 +41,7 @@ make_monolithic board-a aarch64
 	assert_eq "source" "$KERNEL_SOURCE_TYPE" "config.aarch64 means source-built"
 	assert_eq "monolithic" "$KERNEL_CONFIG_MODE" "a full config is monolithic"
 	assert_eq "6.12.28" "$KERNEL_VERSION" "the version is read"
-	assert_eq "6.12.28-lazyos" "$KERNEL_RELEASE" "release is version plus CONFIG_LOCALVERSION"
+	assert_eq "6.12.28-hayato" "$KERNEL_RELEASE" "release is version plus CONFIG_LOCALVERSION"
 	assert_eq "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.12.28.tar.xz" \
 		"$KERNEL_URL" "the tarball URL uses the kernel's major series"
 	assert_eq "0" "${#KERNEL_FRAGMENTS[@]}" "a monolithic kernel has no extra fragments"

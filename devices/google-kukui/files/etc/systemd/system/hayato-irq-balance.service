@@ -1,10 +1,10 @@
 [Unit]
-Description=Balance storage IRQs away from CPU0 on MT8192
+Description=Balance storage IRQs away from CPU0 on MT8183
 After=local-fs.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/lazyos-irq-balance
+ExecStart=/usr/local/sbin/hayato-irq-balance
 RemainAfterExit=yes
 
 [Install]

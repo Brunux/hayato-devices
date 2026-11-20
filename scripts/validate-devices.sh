@@ -85,4 +85,4 @@ for dev_dir in "$DEVICES_DIR"/*; do
 done
 
 [ "$FAIL" -eq 0 ] || exit 1
-log "All lazyos-devices checks passed"
+log "All hayato-devices checks passed"

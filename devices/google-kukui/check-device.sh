@@ -1,6 +1,6 @@
 #!/bin/bash
 # Board hardware checks for google-kukui (Google Kukui / Krane / Kodama / Kakadu / Katsu / Jacuzzi, MT8183).
-# Sourced/executed as /usr/libexec/lazyos/check/20-device.sh by check-system.sh.
+# Sourced/executed as /usr/libexec/hayato/check/20-device.sh by check-system.sh.
 # shellcheck shell=bash
 
 section "Device: google-kukui (Boot & DTB)"
@@ -42,10 +42,10 @@ else
 	warn "/dev/mmcblk0 missing (expected on MT8183 eMMC boards)"
 fi
 
-if systemctl list-unit-files lazyos-irq-balance.service >/dev/null 2>&1; then
-	check_svc lazyos-irq-balance
+if systemctl list-unit-files hayato-irq-balance.service >/dev/null 2>&1; then
+	check_svc hayato-irq-balance
 else
-	warn "lazyos-irq-balance.service is not installed"
+	warn "hayato-irq-balance.service is not installed"
 fi
 
 for _mmc in 11230000.mmc 11240000.mmc; do

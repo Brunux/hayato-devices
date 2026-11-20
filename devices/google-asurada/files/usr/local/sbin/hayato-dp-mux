@@ -52,5 +52,5 @@ if "$I2CSET" -f -y "$BUS" 0x2c 0x00 0x00 &&
 	exit 0
 fi
 
-logger -t lazyos-dp-mux "could not set the crosspoint for $ALT on i2c-$BUS"
+logger -t hayato-dp-mux "could not set the crosspoint for $ALT on i2c-$BUS"
 exit 0

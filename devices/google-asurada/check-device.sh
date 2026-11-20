@@ -1,6 +1,6 @@
 #!/bin/sh
 # Board hardware checks for google-asurada (Google Hayato, MT8192).
-# Sourced by /usr/libexec/lazyos/check-system.sh (provides section/ok/warn/fail/skip/info/have/asroot/check_svc).
+# Sourced by /usr/libexec/hayato/check-system.sh (provides section/ok/warn/fail/skip/info/have/asroot/check_svc).
 
 # ---------------------------------------------------------------------------
 section "Device: google-asurada (Boot & DTB)"
@@ -76,20 +76,20 @@ else
 	fail "no DP connector: the DTB describes no DPI output (mt8192-asurada-external-display.patch)"
 fi
 
-if [ -x /usr/local/sbin/lazyos-dp-mux ]; then
-	ok "lazyos-dp-mux is executable"
+if [ -x /usr/local/sbin/hayato-dp-mux ]; then
+	ok "hayato-dp-mux is executable"
 else
-	fail "/usr/local/sbin/lazyos-dp-mux is missing or not executable: the Type-C crosspoint is never set"
+	fail "/usr/local/sbin/hayato-dp-mux is missing or not executable: the Type-C crosspoint is never set"
 fi
-if grep -qs lazyos-dp-mux /etc/udev/rules.d/90-lazyos-dp-mux.rules 2>/dev/null; then
-	ok "udev runs lazyos-dp-mux when a port enters DisplayPort alt mode"
+if grep -qs hayato-dp-mux /etc/udev/rules.d/90-hayato-dp-mux.rules 2>/dev/null; then
+	ok "udev runs hayato-dp-mux when a port enters DisplayPort alt mode"
 else
-	fail "/etc/udev/rules.d/90-lazyos-dp-mux.rules is missing: only the left-hand port reaches the monitor"
+	fail "/etc/udev/rules.d/90-hayato-dp-mux.rules is missing: only the left-hand port reaches the monitor"
 fi
 if have i2cset; then
 	ok "i2cset is installed"
 else
-	fail "i2cset is missing (i2c-tools): lazyos-dp-mux cannot write the crosspoint"
+	fail "i2cset is missing (i2c-tools): hayato-dp-mux cannot write the crosspoint"
 fi
 
 for _alt in /sys/class/typec/port*-partner/port*-partner.*/; do
@@ -125,18 +125,18 @@ for _alt in /sys/class/typec/port*-partner/port*-partner.*/; do
 done
 
 _dpr=""
-for _cand in /usr/local/bin/lazyos-dp-resume "$HOME/.config/bin/lazyos-dp-resume"; do
+for _cand in /usr/local/bin/hayato-dp-resume "$HOME/.config/bin/hayato-dp-resume"; do
 	[ -x "$_cand" ] && _dpr="$_cand" && break
 done
 if [ -n "$_dpr" ]; then
-	ok "lazyos-dp-resume is executable ($_dpr)"
+	ok "hayato-dp-resume is executable ($_dpr)"
 	if grep -qs 'resolution' "$_dpr"; then
-		ok "lazyos-dp-resume retrains the link after writing the crosspoint"
+		ok "hayato-dp-resume retrains the link after writing the crosspoint"
 	else
 		fail "$_dpr lost its modeset: the crosspoint would be right and the link still dead"
 	fi
 else
-	fail "lazyos-dp-resume is missing or not executable: the monitor keeps its picture only until the first suspend"
+	fail "hayato-dp-resume is missing or not executable: the monitor keeps its picture only until the first suspend"
 fi
 
 # ---------------------------------------------------------------------------
