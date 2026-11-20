@@ -1,8 +1,8 @@
-# Porting Devices from postmarketOS & Nura Linux to LazyOS
+# Porting Devices from postmarketOS & Nura Linux to Hayato
 
 This guide captures verified findings and conventions from porting `google-asurada` (MT8192)
 and `google-kukui` (MT8183) from postmarketOS (`pmaports`) and Nura Linux (`nura/pmaports`,
-`ondev2`, and `pmbootstrap`) into `lazyos-devices`. Use it as the checklist when adding new
+`ondev2`, and `pmbootstrap`) into `hayato-devices`. Use it as the checklist when adding new
 ARM64 boards or Chromebooks.
 
 ---
@@ -28,8 +28,8 @@ For a target board `<vendor>-<codename>` in `pmaports` (postmarketOS / Nura):
 > When inspecting Nura's `ondev2` (`src/install_steps.c`), `od2_install_step_create_partition_table_cgpt()`
 > was still unimplemented (`return -1`), while Nura wiki ChromeOS crosh slot-overwrite instructions
 > reference `Nura_boot` / `Nura_root` labels. For full standalone GPT partitioning on Depthcharge
-> Chromebooks, `pmbootstrap` (`pmb/install/partition.py`, `pmb/install/format.py`) and LazyOS
-> (`core/scripts/lib-cgpt.sh`, `lazyos installer`) both use the standard 3-partition layout
+> Chromebooks, `pmbootstrap` (`pmb/install/partition.py`, `pmb/install/format.py`) and Hayato
+> (`core/scripts/lib-cgpt.sh`, `hayato installer`) both use the standard 3-partition layout
 > (`pmOS_kernel`, `pmOS_boot`, `pmOS_root`) with `-S 1 -T 5 -P 10`.
 
 ---
@@ -37,9 +37,9 @@ For a target board `<vendor>-<codename>` in `pmaports` (postmarketOS / Nura):
 ## 2. Creating `devices/<codename>/`
 
 Start from `devices/_template/` and preserve the exact schema expected by
-`devices/scripts/validate-devices.sh`, `core/scripts/lib.sh`, and `lazyos installer`.
+`devices/scripts/validate-devices.sh`, `core/scripts/lib.sh`, and `hayato installer`.
 
-| File | Purpose in LazyOS |
+| File | Purpose in Hayato |
 |---|---|
 | `deviceinfo` | Hardware and bootloader metadata (double quotes only; parsed by both Bash and Rust) |
 | `kernel` | Kernel flavor name under `kernels/` (`mediatek-mt81`, `arm64-mainline`, or `debian-arm64`) |
@@ -48,15 +48,15 @@ Start from `devices/_template/` and preserve the exact schema expected by
 | `kernel-cmdline.conf` | Kernel command-line tokens appended before `root=UUID=...` (always end with newline or relies on `make-kpart.sh` space normalization) |
 | `modules-initfs` | Early-boot module list (`#` comments allowed) |
 | `packages.list` | Debian `forky` packages needed on target (firmware, boot tools, `keyd`, `i2c-tools`, etc.) |
-| `check-device.sh` | Executable (`0755`) runtime hardware audit installed to `/usr/libexec/lazyos/check/20-device.sh` |
+| `check-device.sh` | Executable (`0755`) runtime hardware audit installed to `/usr/libexec/hayato/check/20-device.sh` |
 | `files/` | Target `/` overlay for board-specific udev rules, `keyd` maps, UCM2 symlinks, firmware links, and IRQ scripts |
 
 ### `deviceinfo` Rules
 - `deviceinfo_codename` **must match** the directory name under `devices/devices/`.
 - `deviceinfo_boot_type` selects one of the three `core/boot/` backends:
   - `"depthcharge"` (ChromeOS `cgpt` + `depthchargectl`)
-  - `"uefi"` (GPT `lazyos_efi` `vfat` ESP + `systemd-boot`)
-  - `"extlinux"` (U-Boot SBC GPT `lazyos_boot` starting at `deviceinfo_extlinux_start_mib`, default `16`)
+  - `"uefi"` (GPT `hayato_efi` `vfat` ESP + `systemd-boot`)
+  - `"extlinux"` (U-Boot SBC GPT `hayato_boot` starting at `deviceinfo_extlinux_start_mib`, default `16`)
 - Leave `deviceinfo_dtb=""` only for ACPI-only UEFI targets (`arm64-uefi`) or multi-DTB generic targets using `/boot/dtbs/` syncing. For board builds, set e.g. `deviceinfo_dtb="mediatek/mt8183-kukui*"`.
 - On dual-MMC Chromebooks where both eMMC and SD/USB readers may report `RM=0`, set `deviceinfo_install_target="/dev/mmcblk0"` so the installer defaults to internal storage while still blocking active media via `check_machine_safety()`.
 
@@ -68,7 +68,7 @@ Start from `devices/_template/` and preserve the exact schema expected by
   (including `mt8183-fix-bluetooth.patch`, which restores v5.17 `8250_mtk.c` UART flow control for
   MT8183 Bluetooth). Both `google-asurada` and `google-kukui` share this compiled stage.
 - **`arm64-mainline`**: Preferred template for new ARM64 boards. Merges upstream `defconfig` +
-  `kernels/arm64-mainline/base.config` (LazyOS tuning: `HZ_1000`, MGLRU, `schedutil`, `zram`, `kyber`,
+  `kernels/arm64-mainline/base.config` (Hayato tuning: `HZ_1000`, MGLRU, `schedutil`, `zram`, `kyber`,
   THP `madvise`, systemd cgroups/PSI) + SoC fragments (`fragments/*.config`) + optional board `kernel.config`.
 - **`debian-arm64`**: Uses Debian `forky` `linux-image-arm64` (`KERNEL_SOURCE_TYPE="debian-pkg"`), upgraded in-place via `apt`.
 
@@ -99,7 +99,7 @@ Alpine's `vboot-utils` + `depthcharge-tools` split differently in Debian `forky`
 - **Case study (`google-kukui`)**:
   - `mtk_scp` loads `mediatek/mt8183/scp.img` (`firmware-mediatek`).
   - `ath10k` QCA6174 SDIO loads `ath10k/QCA6174/hw3.0/firmware-sdio-6.bin` (`firmware-atheros`).
-  - **Missing filename**: Debian's `firmware-atheros` ships `qca/nvm_00440302_i2s_eu.bin` without `qca/nvm_00440302_i2s.bin`. Fix cleanly inside `devices/google-kukui/files/usr/lib/firmware/qca/` with a relative symlink rather than touching `lazyos-core`.
+  - **Missing filename**: Debian's `firmware-atheros` ships `qca/nvm_00440302_i2s_eu.bin` without `qca/nvm_00440302_i2s.bin`. Fix cleanly inside `devices/google-kukui/files/usr/lib/firmware/qca/` with a relative symlink rather than touching `hayato-core`.
 
 ### ALSA UCM2 15-Character Card Name Truncation
 - ALSA card shortnames truncate at 15 bytes (e.g. `mt8183_da7219_max98357` -> `mt8183_da7219_m`).
@@ -114,8 +114,8 @@ Alpine's `vboot-utils` + `depthcharge-tools` split differently in Debian `forky`
   3. Keep lock/sleep (`KEY_SLEEP`) ungrabbed so `systemd-logind` / `swaylock` handle suspend cleanly.
 
 ### Internal Panel Outputs (`eDP-*` vs `DSI-*`) & IRQ Balancing
-- Clamshell Chromebooks typically expose `eDP-1`, while tablets (`krane`) expose `DSI-1`. Keep desktop panel discovery generic (`eDP-*` | `DSI-*`) in `lazyos` rather than board-specific.
-- When `cros_ec` or audio IRQs share CPU0 with high-throughput eMMC/SD controllers (`11230000.mmc`, `11240000.mmc`), ship a `lazyos-irq-balance` helper + systemd unit in `devices/<codename>/files/` to steer storage IRQs onto another core.
+- Clamshell Chromebooks typically expose `eDP-1`, while tablets (`krane`) expose `DSI-1`. Keep desktop panel discovery generic (`eDP-*` | `DSI-*`) in `hayato` rather than board-specific.
+- When `cros_ec` or audio IRQs share CPU0 with high-throughput eMMC/SD controllers (`11230000.mmc`, `11240000.mmc`), ship a `hayato-irq-balance` helper + systemd unit in `devices/<codename>/files/` to steer storage IRQs onto another core.
 
 ---
 
@@ -131,7 +131,7 @@ When adding a new board, verify all three layers understand its geometry:
    - `core/scripts/make-kpart.sh` invokes `depthchargectl build --root none` (`depthchargectl` injects `kern_guid=%U` itself).
    - Uses `findmnt -rn -S <part>` (never `mountpoint -q`) and requires `udisks2` stopped during partitioning.
 
-2. **Pure-Rust `lazyos installer` (`desktop/rust/crates/lazyos-cli/src/installer/`)**:
+2. **Pure-Rust `hayato installer` (`desktop/rust/crates/hayato-cli/src/installer/`)**:
    - **Pre-flight power (`preflight::detect_power_from`)**: inspect `/sys/class/power_supply/*` by `type` (`"Mains"` / `"USB"` + `online == "1"`, `"Battery"` ignoring `scope == "Device"` stylus/HID batteries) with `AC`/`ADP`/`BAT` fallback — ChromeOS boards expose `CROS_USBPD_CHARGER*` and `sbs-*-000b` instead of ACPI `AC`/`BAT0`.
    - **Target safety (`preflight::check_machine_safety`)**: blocks installation onto any disk hosting `/`, `/boot`, `/boot/efi`, or the active `kern_guid` partition in both TUI pre-flight and headless `apply`.
    - **UI labels & diagrams (`installer/ui.rs`)**: dynamically render `cgpt_kpart_size`, `boot_size_mib`, and `boot_filesystem`, and show Depthcharge reboot instructions covering both `"internal disk"` menus (MT8192) and legacy `Ctrl+D` screens (MT8183).
@@ -153,4 +153,4 @@ When adding a new board, verify all three layers understand its geometry:
    DEVICE=<codename> ./build.sh all
    DEVICE=<codename> ./build.sh release /tmp/release-<codename>
    ```
-4. Boot on real hardware from microSD or USB (`Ctrl+U` / `"external disk"`), verify `lazyos installer --check`, test `check-system.sh` (which executes `20-device.sh`), inspect `dmesg` for missing firmware or UCM2 errors, and record the test output in Umbrella `reports/`.
+4. Boot on real hardware from microSD or USB (`Ctrl+U` / `"external disk"`), verify `hayato installer --check`, test `check-system.sh` (which executes `20-device.sh`), inspect `dmesg` for missing firmware or UCM2 errors, and record the test output in Umbrella `reports/`.

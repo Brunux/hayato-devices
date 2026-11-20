@@ -1,5 +1,5 @@
 #!/bin/sh
-# Board hardware witness checks (installed to /usr/libexec/lazyos/check/20-device.sh).
+# Board hardware witness checks (installed to /usr/libexec/hayato/check/20-device.sh).
 # Sourced by check-system.sh, which supplies: section, ok, warn, fail, skip, info, have, asroot, check_svc.
 
 section "Device: ${DEVICE:-unknown}"

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Shared helpers for lazyos-devices kernel builds and board validation.
-# Works standalone inside lazyos-devices or when sourced/invoked from lazyos-core.
+# Shared helpers for hayato-devices kernel builds and board validation.
+# Works standalone inside hayato-devices or when sourced/invoked from hayato-core.
 
 [ -n "${_LIB_DEVICES_LOADED:-}" ] && return 0
 _LIB_DEVICES_LOADED=1
@@ -10,13 +10,13 @@ DEVICES_DIR="${DEVICES_DIR:-$DEVICES_REPO/devices}"
 KERNELS_DIR="${KERNELS_DIR:-$DEVICES_REPO/kernels}"
 
 DEVICE="${DEVICE:-google-asurada}"
-BUILD_ROOT="${BUILD_ROOT:-/var/tmp/lazyos-build}"
+BUILD_ROOT="${BUILD_ROOT:-/var/tmp/hayato-build}"
 WORK_DIR="${WORK_DIR:-$BUILD_ROOT/work}"
 SRC_DIR="${SRC_DIR:-$BUILD_ROOT/src}"
 KERNEL_STAGE="${KERNEL_STAGE:-$BUILD_ROOT/kernel-stage/$DEVICE}"
 
 if ! declare -F log >/dev/null 2>&1; then
-	log()  { printf '\033[1;34m[lazyos]\033[0m %s\n' "$*"; }
+	log()  { printf '\033[1;34m[hayato]\033[0m %s\n' "$*"; }
 	warn() { printf '\033[1;33m[warn]\033[0m %s\n' "$*" >&2; }
 	die()  { printf '\033[1;31m[fail]\033[0m %s\n' "$*" >&2; exit 1; }
 fi

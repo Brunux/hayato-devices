@@ -1,6 +1,6 @@
 #!/bin/sh
 # Board hardware checks for arm64-extlinux (Generic U-Boot / SBC).
-# Sourced by /usr/libexec/lazyos/check-system.sh.
+# Sourced by /usr/libexec/hayato/check-system.sh.
 
 section "Device: arm64-extlinux (U-Boot / Devicetree)"
 if [ -r /sys/firmware/devicetree/base/model ]; then

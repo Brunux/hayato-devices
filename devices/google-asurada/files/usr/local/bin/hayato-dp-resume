@@ -5,8 +5,8 @@
 # TCPC crosspoint decides which port the transmitter reaches: 0x21 is the left
 # port, 0x12 the right one, and the chip powers up on the left.  Mainline has no
 # typec-switch mux to set it (ChromeOS's driver does), so udev runs
-# lazyos-dp-mux when a port enters DisplayPort alt mode - see
-# /etc/udev/rules.d/90-lazyos-dp-mux.rules.
+# hayato-dp-mux when a port enters DisplayPort alt mode - see
+# /etc/udev/rules.d/90-hayato-dp-mux.rules.
 #
 # A resume is the case udev cannot see.  The bridge is powered down with the
 # rest of the display pipeline and re-initialised on the way back, which resets
@@ -34,7 +34,7 @@
 # exits without touching anything when no port carries DisplayPort alt mode.
 set -u
 
-log() { logger -t lazyos-dp-resume "$*" 2>/dev/null || true; }
+log() { logger -t hayato-dp-resume "$*" 2>/dev/null || true; }
 
 # 1. The port the EC put into DisplayPort alt mode: the same alt-mode device
 #    the udev rule is called with.  svid ff01 is DisplayPort.
@@ -52,7 +52,7 @@ done
 # 2. The crosspoint, through the same helper udev uses.  Only root writes i2c-7,
 #    and this image's default account has passwordless sudo; without it the
 #    second half would retrain a link that still points the wrong way.
-if ! sudo -n /usr/local/sbin/lazyos-dp-mux "$alt" 2>/dev/null; then
+if ! sudo -n /usr/local/sbin/hayato-dp-mux "$alt" 2>/dev/null; then
 	log "could not set the crosspoint for $alt"
 	exit 0
 fi

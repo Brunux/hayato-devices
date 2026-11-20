@@ -1,4 +1,4 @@
-# LazyOS Board Metadata Template (copy this directory to devices/<codename>/)
+# Hayato Board Metadata Template (copy this directory to devices/<codename>/)
 
 # Must match directory name devices/<codename>/
 deviceinfo_codename="example-board"
@@ -8,7 +8,7 @@ deviceinfo_manufacturer="Example Vendor"
 # Architecture: aarch64 | x86_64
 deviceinfo_arch="aarch64"
 
-# Boot backend in lazyos-core: depthcharge | uefi | extlinux
+# Boot backend in hayato-core: depthcharge | uefi | extlinux
 deviceinfo_boot_type="extlinux"
 
 # Device tree glob relative to /boot/dtbs/ (leave empty on ACPI-only UEFI targets)

@@ -6,7 +6,7 @@ a 250 KB full `.config` per board.
 ## Layout
 
 - `version` — Pinned mainline LTS version fetched from `cdn.kernel.org`.
-- `base.config` — LazyOS OS baseline (`HZ_1000`, MGLRU, `schedutil`, `zram` + `lz4`/`zstd`,
+- `base.config` — Hayato OS baseline (`HZ_1000`, MGLRU, `schedutil`, `zram` + `lz4`/`zstd`,
   `kyber`, THP `madvise`, `systemd` cgroup/PSI options, core filesystems, Wayland DRM/HID).
 - `fragments/*.config` — Reusable SoC and platform slices (`chromebook-ec`, `rockchip-rk3588`,
   `qcom-laptop`, `rpi5`).

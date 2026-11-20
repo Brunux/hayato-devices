@@ -6,7 +6,7 @@ firmware-realtek
 firmware-mediatek
 firmware-misc-nonfree
 
-# MT8192 ANX7625 Type-C DisplayPort crosspoint mux (lazyos-dp-mux udev helper)
+# MT8192 ANX7625 Type-C DisplayPort crosspoint mux (hayato-dp-mux udev helper)
 i2c-tools
 
 # MT8192 Hayato ChromeOS top-row action/F-key remapper (etc/keyd/default.conf)

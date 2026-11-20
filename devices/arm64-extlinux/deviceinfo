@@ -1,5 +1,5 @@
 # ARM64 Generic U-Boot / SBC extlinux Target
-# Use double quotes only; parsed directly by lazyos-core scripts and the pure-Rust installer.
+# Use double quotes only; parsed directly by hayato-core scripts and the pure-Rust installer.
 
 deviceinfo_format_version="0"
 deviceinfo_name="ARM64 Generic U-Boot / SBC"

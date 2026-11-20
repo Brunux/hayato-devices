@@ -22,7 +22,7 @@ reset_tree() {
 	printf 'deviceinfo_codename="good"\ndeviceinfo_arch="aarch64"\ndeviceinfo_boot_type="depthcharge"\n' \
 		>"$TMP/devices/good/deviceinfo"
 	printf '6.12.28\n' >"$TMP/kernels/arm64-mainline/version"
-	printf 'CONFIG_LOCALVERSION="-lazyos"\nCONFIG_PREEMPT=y\n' \
+	printf 'CONFIG_LOCALVERSION="-hayato"\nCONFIG_PREEMPT=y\n' \
 		>"$TMP/kernels/arm64-mainline/config.aarch64"
 	printf '#!/bin/bash\ntrue\n' >"$TMP/devices/good/check-device.sh"
 	chmod +x "$TMP/devices/good/check-device.sh"
@@ -48,7 +48,7 @@ check_validate() {
 
 # --- a valid tree passes ---------------------------------------------------
 reset_tree
-check_validate 0 "a valid tree passes" "All lazyos-devices checks passed"
+check_validate 0 "a valid tree passes" "All hayato-devices checks passed"
 
 # --- an invalid Kconfig line ----------------------------------------------
 reset_tree

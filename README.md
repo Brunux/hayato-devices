@@ -1,10 +1,10 @@
-# `lazyos-devices`
+# `hayato-devices`
 
-Hardware definitions and Linux kernel recipes for [LazyOS](https://github.com/Brunux/LazyOS).
+Hardware definitions and Linux kernel recipes for [Hayato](https://github.com/Brunux/Hayato).
 
 ## Structure
 
-- `kernels/debian-arm64/` — Debian `forky` packaged `linux-image-arm64` kernel (`KERNEL_SOURCE_TYPE="debian-pkg"`); skips kernel compilation and stays updated via `apt upgrade` + `/etc/kernel/postinst.d/zz-lazyos-boot`.
+- `kernels/debian-arm64/` — Debian `forky` packaged `linux-image-arm64` kernel (`KERNEL_SOURCE_TYPE="debian-pkg"`); skips kernel compilation and stays updated via `apt upgrade` + `/etc/kernel/postinst.d/zz-hayato-boot`.
 - `kernels/arm64-mainline/` — Pinned Linux mainline LTS recipe with modular `base.config` and
   reusable SoC `fragments/*.config` for new ARM64 boards.
 - `kernels/mediatek-mt81/` — Kernel `7.2.7` and MediaTek MT8192/MT8186/MT8183 patches (used by `google-asurada` and `google-kukui`).

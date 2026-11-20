@@ -1,6 +1,6 @@
 #!/bin/sh
 # Board hardware checks for arm64-uefi (Generic ARM64 UEFI / ACPI / EBBR).
-# Sourced by /usr/libexec/lazyos/check-system.sh.
+# Sourced by /usr/libexec/hayato/check-system.sh.
 
 section "Device: arm64-uefi (UEFI Boot & Kernel)"
 if [ -d /sys/firmware/efi ]; then
@@ -11,10 +11,10 @@ else
 	fail "neither /sys/firmware/efi nor devicetree found"
 fi
 
-if [ -r /boot/efi/loader/entries/lazyos.conf ]; then
-	ok "systemd-boot entry present (/boot/efi/loader/entries/lazyos.conf)"
+if [ -r /boot/efi/loader/entries/hayato.conf ]; then
+	ok "systemd-boot entry present (/boot/efi/loader/entries/hayato.conf)"
 else
-	fail "missing /boot/efi/loader/entries/lazyos.conf"
+	fail "missing /boot/efi/loader/entries/hayato.conf"
 fi
 
 if [ -r /boot/efi/EFI/BOOT/BOOTAA64.EFI ] || [ -r /boot/efi/EFI/systemd/systemd-bootaa64.efi ]; then
