@@ -205,6 +205,18 @@ if [ -n "$_mmc_irq" ] && [ -r "/proc/irq/$_mmc_irq/smp_affinity_list" ]; then
 	esac
 fi
 
+# The USB controller is the other storage interrupt that lands on CPU0 by
+# default; a profile restore or a big copy from a stick is exactly the load
+# that made the touchpad lag.
+_usb_irq=$(awk '$NF ~ /^xhci-hcd:usb/ {print $1; exit}' /proc/interrupts 2>/dev/null | tr -d ':')
+if [ -n "$_usb_irq" ] && [ -r "/proc/irq/$_usb_irq/smp_affinity_list" ]; then
+	_aff=$(cat "/proc/irq/$_usb_irq/smp_affinity_list" 2>/dev/null)
+	case "$_aff" in
+		0|0-*) warn "USB IRQ $_usb_irq affinity is $_aff (a drive read will starve CPU0 input processing)" ;;
+		*) ok "USB IRQ $_usb_irq routed to CPU $_aff (CPU0 input handling protected)" ;;
+	esac
+fi
+
 # ---------------------------------------------------------------------------
 section "Device: google-asurada Kernel Optimizations"
 # ---------------------------------------------------------------------------

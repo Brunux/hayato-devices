@@ -1,8 +1,15 @@
 #!/bin/sh
 # Balance storage IRQs away from CPU0 (ChromeOS EC input core) on MT8192.
+# The touchpad's hid-over-i2c interrupt is handled on CPU0; a storage interrupt
+# storm on the same core is what makes it lag. mmc: CPU2/3. USB (xhci): CPU4,
+# because an external drive read - a profile restore, a copied file - is the
+# heaviest storage source and used to land on CPU0.
 for irq in $(awk '$NF == "11f70000.mmc" {print $1; exit}' /proc/interrupts 2>/dev/null | tr -d ':'); do
 	[ -w "/proc/irq/$irq/smp_affinity_list" ] && echo 2 > "/proc/irq/$irq/smp_affinity_list" 2>/dev/null || true
 done
 for irq in $(awk '$NF == "11f60000.mmc" {print $1; exit}' /proc/interrupts 2>/dev/null | tr -d ':'); do
 	[ -w "/proc/irq/$irq/smp_affinity_list" ] && echo 3 > "/proc/irq/$irq/smp_affinity_list" 2>/dev/null || true
+done
+for irq in $(awk '$NF ~ /^xhci-hcd:usb/ {print $1}' /proc/interrupts 2>/dev/null | tr -d ':'); do
+	[ -w "/proc/irq/$irq/smp_affinity_list" ] && echo 4 > "/proc/irq/$irq/smp_affinity_list" 2>/dev/null || true
 done
