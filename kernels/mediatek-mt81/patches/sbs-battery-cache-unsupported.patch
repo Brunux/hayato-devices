@@ -1,0 +1,54 @@
+power: supply: sbs-battery: remember a property the EC does not support
+
+The previous patch maps the EC's EIO to ENODATA, which removes the log line
+but not the SBS transaction: UPower polls time_to_empty_now every few
+seconds, and every poll still talks to the EC - the same EC that serves the
+touchpad. On the MT8192 a charger plugged in made the pointer lag while
+those polls ran.
+
+Cache the failure per property: after the first EIO, answer ENODATA without
+another SBS transaction. The battery's capacity and status keep being read,
+so UPower's critical-battery action still works.
+
+diff --git a/drivers/power/supply/sbs-battery.c b/drivers/power/supply/sbs-battery.c
+--- a/drivers/power/supply/sbs-battery.c
++++ b/drivers/power/supply/sbs-battery.c
+@@ -5,6 +5,7 @@
+  * Copyright (c) 2010, NVIDIA Corporation.
+  */
+ 
++#include <linux/bitops.h>
+ #include <linux/bits.h>
+ #include <linux/delay.h>
+ #include <linux/devm-helpers.h>
+@@ -218,6 +219,7 @@
+ 	int				technology;
+ 	char				strings[NR_STRING_BUFFERS][I2C_SMBUS_BLOCK_MAX + 1];
+ 	char				serial[5];
++	unsigned long			unsupported;
+ };
+ 
+ static char *sbs_get_string_buf(struct sbs_info *chip,
+@@ -913,6 +915,13 @@
+ 	struct i2c_client *client = chip->client;
+ 	const char *str;
+ 
++	/* A property the EC answered EIO for is not implemented; answer
++	 * ENODATA without another SBS transaction, because UPower polls
++	 * time_to_empty_now every few seconds and the EC also serves
++	 * input. */
++	if (psp < BITS_PER_LONG && test_bit(psp, &chip->unsupported))
++		return -ENODATA;
++
+ 	if (chip->gpio_detect) {
+ 		ret = gpiod_get_value_cansleep(chip->gpio_detect);
+ 		if (ret < 0)
+@@ -1030,6 +1039,8 @@
+ 			"%s: property = %d, value = %x\n", __func__,
+ 			psp, val->intval);
+ 	} else if (!chip->is_present || ret == -EIO) {
++		if (ret == -EIO && psp < BITS_PER_LONG)
++			set_bit(psp, &chip->unsupported);
+ 		/*
+ 		 * Battery not present, or the EC behind this SBS tunnel does not
+ 		 * implement the property (the MT8192 EC answers EIO for

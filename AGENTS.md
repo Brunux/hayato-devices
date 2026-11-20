@@ -30,7 +30,10 @@ a board. Prose may say "the Hayato Chromebook" for the hardware and "Hayato" for
     failed read, which put ~1,300 lines per boot in the journal.
     `patches/sbs-battery-eio-is-no-data.patch` returns `-ENODATA` for that
     tunnel, which the core logs at debug level only; a real failure still
-    surfaces through `present`/`health`.
+    surfaces through `present`/`health`. `patches/sbs-battery-cache-unsupported.patch`
+    then remembers the property, so UPower's poll stops talking to the EC after
+    the first read: the EC also serves input, and with a charger plugged in the
+    repeated SBS transactions made the touchpad lag.
 
 ## How to Add a New Mainline Board (6 Steps)
 See [`PORTING-PMOS-NURA.md`](PORTING-PMOS-NURA.md) for the complete postmarketOS / Nura Linux porting checklist (`pmaports`, `depthcharge-tools` `boards.ini`, Debian `forky` firmware/UCM2 pitfalls, and `hayato installer` compatibility).
