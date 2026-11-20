@@ -1,0 +1,36 @@
+power: supply: sbs-battery: the EC's EIO is "no data", not an error
+
+The MT8192 EC behind this SBS tunnel answers EIO for the properties it does
+not implement (time_to_empty_now, charge_full, temp, status, energy_full,
+cycle_count, ...). UPower polls time_to_empty_now every few seconds, and
+power_supply_sysfs logs every failed read, so a boot collected ~1,300 lines:
+
+  power_supply sbs-8-000b: driver failed to report `time_to_empty_now' property: -5
+
+An EIO from this tunnel is "no data for this property", not a bus error worth
+a line per poll: return -ENODATA, which the core logs at debug level only. A
+genuinely absent battery still takes the same path, and present/health keep
+reporting a real failure.
+
+diff --git a/drivers/power/supply/sbs-battery.c b/drivers/power/supply/sbs-battery.c
+--- a/drivers/power/supply/sbs-battery.c
++++ b/drivers/power/supply/sbs-battery.c
+@@ -1029,8 +1029,16 @@
+ 		dev_dbg(&client->dev,
+ 			"%s: property = %d, value = %x\n", __func__,
+ 			psp, val->intval);
+-	} else if (!chip->is_present)  {
+-		/* battery not present, so return NODATA for properties */
++	} else if (!chip->is_present || ret == -EIO) {
++		/*
++		 * Battery not present, or the EC behind this SBS tunnel does not
++		 * implement the property (the MT8192 EC answers EIO for
++		 * time_to_empty_now, charge_full, temp and friends). The
++		 * power-supply core logs every failed read, and UPower asks for
++		 * time_to_empty_now every few seconds, so the EC's EIO became
++		 * thousands of journal lines per boot. EIO from this tunnel is
++		 * "no data" for the property, not an error worth a line per poll.
++		 */
+ 		ret = -ENODATA;
+ 	}
+ 	return ret;

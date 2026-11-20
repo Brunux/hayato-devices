@@ -6,3 +6,4 @@ mt8186-drm-bridge-it6505-Add-audio-support.patch
 mt8186-ASoC-mediatek-mt8186-make-FE-nonatomic-and-no_pcm.patch
 mtk-pmdomain.patch
 mt8192-asurada-external-display.patch
+sbs-battery-eio-is-no-data.patch

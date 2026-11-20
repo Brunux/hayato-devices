@@ -24,6 +24,13 @@ a board. Prose may say "the Hayato Chromebook" for the hardware and "Hayato" for
     `scripts/kconfig/merge_config.sh`, then runs `olddefconfig` and checks for config drift.
 - **`mediatek-mt81`**: Custom source config (`7.2.7` + 8 out-of-tree patches including `mt8183-fix-bluetooth.patch` + strict `HZ=1000` / `MGLRU` / `schedutil` assertions in `check-device.sh`) shared by `google-asurada` (MT8192) and `google-kukui` (MT8183) ChromeOS families.
   - Because Debian `firmware-atheros` packages `qca/nvm_00440302_i2s_eu.bin` without `qca/nvm_00440302_i2s.bin` and `alsa-ucm-conf` ships `conf.d/mt8183_da7219_r` without the 15-char truncated `conf.d/mt8183_da7219_m` entry (`mt8183_da7219_max98357`), `devices/google-kukui/files/` supplies both relative symlinks rather than pushing board quirks into `hayato-core` or `hayato-desktop`.
+  - The MT8192 EC answers `EIO` for the SBS properties it does not implement
+    (`time_to_empty_now`, `charge_full`, `temp`, ...). UPower polls
+    `time_to_empty_now` every few seconds and the power-supply core logs every
+    failed read, which put ~1,300 lines per boot in the journal.
+    `patches/sbs-battery-eio-is-no-data.patch` returns `-ENODATA` for that
+    tunnel, which the core logs at debug level only; a real failure still
+    surfaces through `present`/`health`.
 
 ## How to Add a New Mainline Board (6 Steps)
 See [`PORTING-PMOS-NURA.md`](PORTING-PMOS-NURA.md) for the complete postmarketOS / Nura Linux porting checklist (`pmaports`, `depthcharge-tools` `boards.ini`, Debian `forky` firmware/UCM2 pitfalls, and `hayato installer` compatibility).
