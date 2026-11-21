@@ -98,20 +98,29 @@ check_config_drift() {
 build_kernel() {
 	log "Building kernel $KERNEL_RELEASE ($JOBS jobs)"
 	# Host tools (resolve_btfids, libsubcmd, libbpf) compile with
-	# -I$(srctree)/tools/include, so <linux/types.h> resolves to
-	# tools/include/linux/types.h instead of /usr/include/linux/types.h.
-	# Current Debian forky's <asm/sigcontext.h> uses __u128, which
-	# tools/include/linux/types.h omits; add the typedef there rather than
-	# force-including /usr/include/linux/types.h (which collides with
-	# tools/include/linux/types.h's __le32/__be32 typedefs).
-	if [ -f "$KERNEL_SRC/tools/include/linux/types.h" ] &&
-		! grep -qs "__u128" "$KERNEL_SRC/tools/include/linux/types.h"; then
-		sed -i '/^#endif \/\* __TOOLS_LINUX_TYPES_H \*\//i \
-#ifdef __SIZEOF_INT128__\
-typedef __signed__ __int128 __s128 __attribute__((aligned(16)));\
-typedef unsigned __int128 __u128 __attribute__((aligned(16)));\
-#endif' "$KERNEL_SRC/tools/include/linux/types.h"
-	fi
+	# -I$(srctree)/tools/include/uapi and -I$(srctree)/tools/include, so
+	# <linux/types.h> resolves to the kernel tree's tools headers instead of
+	# /usr/include/linux/types.h. Current Debian forky's <asm/sigcontext.h> and
+	# <asm/ptrace.h> use __u128, which those tools headers omit; prepend the
+	# guarded __s128/__u128 typedefs to both tools headers.
+	for _th in \
+		"$KERNEL_SRC/tools/include/linux/types.h" \
+		"$KERNEL_SRC/tools/include/uapi/linux/types.h"; do
+		if [ -f "$_th" ] && ! grep -qs "__hayato_u128_defined" "$_th"; then
+			log "Patching __u128 typedef into ${_th#"$KERNEL_SRC/"}"
+			{
+				cat <<'EOF'
+#if defined(__SIZEOF_INT128__) && !defined(__hayato_u128_defined)
+#define __hayato_u128_defined 1
+typedef __signed__ __int128 __s128 __attribute__((aligned(16)));
+typedef unsigned __int128 __u128 __attribute__((aligned(16)));
+#endif
+EOF
+				cat "$_th"
+			} >"$_th.hayato"
+			mv "$_th.hayato" "$_th"
+		fi
+	done
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 olddefconfig </dev/null >/dev/null
 	check_config_drift
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS"
