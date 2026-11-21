@@ -13,7 +13,7 @@ DEVICE="${DEVICE:-google-asurada}"
 BUILD_ROOT="${BUILD_ROOT:-/var/tmp/hayato-build}"
 WORK_DIR="${WORK_DIR:-$BUILD_ROOT/work}"
 SRC_DIR="${SRC_DIR:-$BUILD_ROOT/src}"
-KERNEL_STAGE="${KERNEL_STAGE:-$BUILD_ROOT/kernel-stage/$DEVICE}"
+_EXPLICIT_KERNEL_STAGE="${KERNEL_STAGE:-}"
 
 if ! declare -F log >/dev/null 2>&1; then
 	log()  { printf '\033[1;34m[hayato]\033[0m %s\n' "$*"; }
@@ -42,6 +42,7 @@ load_device_context() {
 	BOOT_TYPE="${deviceinfo_boot_type:-depthcharge}"
 
 	KERNEL_FLAVOR="$(tr -d ' \t\r\n' <"$dev_dir/kernel")"
+	KERNEL_STAGE="${_EXPLICIT_KERNEL_STAGE:-$WORK_DIR/kernel-stage-$KERNEL_FLAVOR}"
 	KERNEL_DIR="$KERNELS_DIR/$KERNEL_FLAVOR"
 	[ -d "$KERNEL_DIR" ] || die "kernel flavor not found: $KERNEL_DIR"
 	[ -f "$KERNEL_DIR/version" ] || die "missing $KERNEL_DIR/version"
