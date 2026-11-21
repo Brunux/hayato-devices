@@ -23,6 +23,13 @@ a board. Prose may say "the Hayato Chromebook" for the hardware and "Hayato" for
   - `scripts/build-kernel.sh` merges `defconfig` + `base.config` + fragments via
     `scripts/kconfig/merge_config.sh`, then runs `olddefconfig` and checks for config drift.
 - **`mediatek-mt81`**: Custom source config (`7.2.7` + 8 out-of-tree patches including `mt8183-fix-bluetooth.patch` + strict `HZ=1000` / `MGLRU` / `schedutil` assertions in `check-device.sh`) shared by `google-asurada` (MT8192) and `google-kukui` (MT8183) ChromeOS families.
+- **Debian Packaging (`package_kernel_deb` & `package_device_deb` in `scripts/lib-devices.sh`)**:
+  Source-built kernels default to `BUILD_DEB=yes` in `scripts/build-kernel.sh`, staging
+  `linux-image-hayato-<flavor>_<kver>+hayato<ver>-1hayato1_<arch>.deb` (with DTBs in both `/boot/dtbs/`
+  and `/usr/lib/linux-image-<release>/`, host `build`/`source` symlinks stripped, and a `postinst`
+  running `depmod`, `update-initramfs`, and `zz-hayato-boot`). Board overlays and `/etc/hayato/*`
+  metadata are packaged into `hayato-device-<codename>_<ver>-1hayato1_<arch>.deb` via
+  `scripts/build-device-deb.sh`.
   - Because Debian `firmware-atheros` packages `qca/nvm_00440302_i2s_eu.bin` without `qca/nvm_00440302_i2s.bin` and `alsa-ucm-conf` ships `conf.d/mt8183_da7219_r` without the 15-char truncated `conf.d/mt8183_da7219_m` entry (`mt8183_da7219_max98357`), `devices/google-kukui/files/` supplies both relative symlinks rather than pushing board quirks into `hayato-core` or `hayato-desktop`.
   - The MT8192 EC answers `EIO` for the SBS properties it does not implement
     (`time_to_empty_now`, `charge_full`, `temp`, ...). UPower polls

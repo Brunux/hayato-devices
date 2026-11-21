@@ -148,4 +148,43 @@ printf 'deviceinfo_codename="board-default"\ndeviceinfo_arch="aarch64"\n' \
 	assert_eq "depthcharge" "$BOOT_TYPE" "an absent boot type defaults to depthcharge"
 )
 
+# --- package_kernel_deb and package_device_deb build valid .deb archives ---
+mkdir -p "$DEVICES_DIR/board-pkg/files/etc/udev/rules.d"
+printf 'arm64-mainline\n' >"$DEVICES_DIR/board-pkg/kernel"
+printf 'deviceinfo_codename="board-pkg"\ndeviceinfo_arch="aarch64"\ndeviceinfo_boot_type="depthcharge"\n' \
+	>"$DEVICES_DIR/board-pkg/deviceinfo"
+printf 'quiet loglevel=2\n' >"$DEVICES_DIR/board-pkg/kernel-cmdline.conf"
+printf 'nvme\n' >"$DEVICES_DIR/board-pkg/modules-initfs"
+printf '#!/bin/bash\ntrue\n' >"$DEVICES_DIR/board-pkg/check-device.sh"
+chmod 0755 "$DEVICES_DIR/board-pkg/check-device.sh"
+printf '# rule\n' >"$DEVICES_DIR/board-pkg/files/etc/udev/rules.d/99-test.rules"
+
+if command -v dpkg-deb >/dev/null 2>&1; then
+	(
+		export HAYATO_VERSION="0.6.0"
+		export WORK_DIR="$TMP/pkg-work"
+		load_device_context board-pkg
+		STAGE_MOCK="$TMP/mock-kstage"
+		OUT_MOCK="$TMP/mock-debs"
+		mkdir -p "$STAGE_MOCK/boot/dtbs/mediatek" "$STAGE_MOCK/lib/modules/$KERNEL_RELEASE" "$OUT_MOCK"
+		printf 'kernel-image\n' >"$STAGE_MOCK/boot/vmlinuz-$KERNEL_RELEASE"
+		printf 'CONFIG_HZ=1000\n' >"$STAGE_MOCK/boot/config"
+		printf 'dtb\n' >"$STAGE_MOCK/boot/dtbs/mediatek/test.dtb"
+		ln -s /nonexistent/host/build "$STAGE_MOCK/lib/modules/$KERNEL_RELEASE/build"
+
+		package_kernel_deb "$STAGE_MOCK" "$OUT_MOCK"
+		package_device_deb "$OUT_MOCK"
+
+		kdeb="$(ls "$OUT_MOCK"/linux-image-hayato-arm64-mainline_6.12.28+hayato0.6.0-1hayato1_*.deb 2>/dev/null | head -n1)"
+		ddeb="$(ls "$OUT_MOCK"/hayato-device-board-pkg_0.6.0-1hayato1_*.deb 2>/dev/null | head -n1)"
+		assert_true "kernel .deb is created" test -f "$kdeb"
+		assert_true "device .deb is created" test -f "$ddeb"
+		assert_contains "$(dpkg-deb -I "$kdeb")" "Provides: linux-image-6.12.28-hayato" "kernel .deb provides linux-image-<release>"
+		assert_contains "$(dpkg-deb -c "$kdeb")" "./usr/lib/linux-image-6.12.28-hayato/mediatek/test.dtb" "kernel .deb ships DTBs in /usr/lib/linux-image-<release>"
+		assert_false "kernel .deb strips host build symlink" bash -c "dpkg-deb -c '$kdeb' | grep -q '/lib/modules/$KERNEL_RELEASE/build'"
+		assert_contains "$(dpkg-deb -c "$ddeb")" "./etc/hayato/deviceinfo" "device .deb ships /etc/hayato/deviceinfo"
+		assert_contains "$(dpkg-deb -c "$ddeb")" "./usr/libexec/hayato/check/20-device.sh" "device .deb ships 20-device.sh"
+	)
+fi
+
 finish

@@ -13,7 +13,7 @@ set -euo pipefail
 STAGE="$KERNEL_STAGE"
 JOBS="${JOBS:-$(nproc)}"
 SERIES="$KERNEL_PATCH_DIR/series"
-BUILD_DEB="${BUILD_DEB:-no}"
+BUILD_DEB="${BUILD_DEB:-yes}"
 
 if [ "${KERNEL_SOURCE_TYPE:-source}" = "debian-pkg" ]; then
 	log "Device : $DEVICE"
@@ -110,13 +110,6 @@ build_kernel() {
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 olddefconfig </dev/null >/dev/null
 	check_config_drift
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS" "${host_compat[@]}"
-	if [ "$BUILD_DEB" = yes ]; then
-		DEB_OUT="$BUILD_ROOT/kernel-deb/$DEVICE"
-		mkdir -p "$DEB_OUT"
-		log "Building Debian kernel packages into $DEB_OUT"
-		make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS" "${host_compat[@]}" bindeb-pkg
-		mv -f "$SRC_DIR"/linux-*.deb "$DEB_OUT/" 2>/dev/null || true
-	fi
 }
 
 install_kernel() {
@@ -132,6 +125,9 @@ install_kernel() {
 	cp "$KERNEL_SRC/.config" "$STAGE/boot/config"
 	cp "$KERNEL_SRC/System.map" "$STAGE/boot/System.map" 2>/dev/null || true
 	log "Kernel release: $(cat "$KERNEL_SRC/include/config/kernel.release")"
+	if [ "$BUILD_DEB" = yes ]; then
+		package_kernel_deb "$STAGE" "$STAGE"
+	fi
 	ls -la "$STAGE/boot"
 }
 
