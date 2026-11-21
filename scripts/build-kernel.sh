@@ -97,19 +97,24 @@ check_config_drift() {
 
 build_kernel() {
 	log "Building kernel $KERNEL_RELEASE ($JOBS jobs)"
-	# Host tools (resolve_btfids and friends) include <asm/sigcontext.h> from
-	# the installed kernel headers, and the header in current forky declares
-	# __u128 without including <linux/types.h> where it is defined. The kernel
-	# proper is unaffected; only the host-side tools fail to compile, so the
-	# fix is a forced include of the system header, and only where it is the
-	# one that carries the typedef.
-	host_compat=()
-	if grep -qs "__u128" /usr/include/linux/types.h; then
-		host_compat=(HOSTCFLAGS="-include /usr/include/linux/types.h")
+	# Host tools (resolve_btfids, libsubcmd, libbpf) compile with
+	# -I$(srctree)/tools/include, so <linux/types.h> resolves to
+	# tools/include/linux/types.h instead of /usr/include/linux/types.h.
+	# Current Debian forky's <asm/sigcontext.h> uses __u128, which
+	# tools/include/linux/types.h omits; add the typedef there rather than
+	# force-including /usr/include/linux/types.h (which collides with
+	# tools/include/linux/types.h's __le32/__be32 typedefs).
+	if [ -f "$KERNEL_SRC/tools/include/linux/types.h" ] &&
+		! grep -qs "__u128" "$KERNEL_SRC/tools/include/linux/types.h"; then
+		sed -i '/^#endif \/\* __TOOLS_LINUX_TYPES_H \*\//i \
+#ifdef __SIZEOF_INT128__\
+typedef __signed__ __int128 __s128 __attribute__((aligned(16)));\
+typedef unsigned __int128 __u128 __attribute__((aligned(16)));\
+#endif' "$KERNEL_SRC/tools/include/linux/types.h"
 	fi
 	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 olddefconfig </dev/null >/dev/null
 	check_config_drift
-	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS" "${host_compat[@]}"
+	make -C "$KERNEL_SRC" ARCH="$KERNEL_ARCH" LLVM=1 -j"$JOBS"
 }
 
 install_kernel() {
