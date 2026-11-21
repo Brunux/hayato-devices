@@ -10,3 +10,4 @@ firmware-mediatek
 cgpt
 vboot-kernel-utils
 depthcharge-tools
+lz4
